@@ -50,12 +50,6 @@ volumes:
   kafka-kraft-logs:
     driver: local
     name: kafka-kraft-logs
-  postgres-data:
-    driver: local
-    name: postgres-data
-  pgadmin-data:
-    driver: local
-    name: pgadmin-data
 
 networks:
   kafka-network:
