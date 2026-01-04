@@ -55,3 +55,43 @@ networks:
   kafka-network:
     name: kafka-compose-network
     driver: bridge
+
+
+
+############## KAFKA ROTATED SECRETS ###################
+# Use below in kafka_server_jaas.conf
+
+# KafkaServer {
+#   org.apache.kafka.common.security.scram.ScramLoginModule required;
+# };
+
+# Update environment variables
+
+# KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+# KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+
+# Add new users
+
+# docker exec -it kafka-kraft /bin/bash
+
+# [appuser@090363d2b8e8 ~]$ cat > /tmp/client-scram.properties <<EOF
+# > security.protocol=SASL_PLAINTEXT
+# > sasl.mechanism=SCRAM-SHA-256
+# > sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
+# > username="admin" \
+# > password="admin-secret";
+# > EOF
+
+# USES 9092 port
+# [appuser@090363d2b8e8 ~]$ /bin/kafka-configs --bootstrap-server localhost:9092 --alter --add-config 'SCRAM-SHA-256=[password=admin-secret]' --entity-type users --entity-name admin
+
+# USES 9094 port
+# [appuser@090363d2b8e8 ~]$ /bin/kafka-configs --bootstrap-server localhost:9094 --command-config /tmp/client-scram.properties --alter --add-config 'SCRAM-SHA-256=[password=admin-secret]' --entity-type users --entity-name admin
+
+# Rotate Secrets
+# [appuser@090363d2b8e8 ~]$ /bin/kafka-configs --bootstrap-server localhost:9092 --alter --add-config 'SCRAM-SHA-256=[password=rotated-secret]' --entity-type users --entity-name admin
+
+# In application.properties
+# kafka.security.protocol=SASL_PLAINTEXT
+# kafka.sasl.mechanism=SCRAM-SHA-256
+# kafka.sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="admin" password="admin-secret";
